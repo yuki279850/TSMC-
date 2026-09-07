@@ -110,8 +110,24 @@ const WORDS = [{"id": 1, "word": "ability", "pos": "n.", "meaning": "能力"}, {
 const PDF_URL = "https://www.tsmc.com/sites/dcom/2023-11/tsmc_vocabulary.pdf";
 const state = {quiz:null};
 
-const getMistakes=()=>JSON.parse(localStorage.getItem("tsmc_mistakes")||"{}");
-const getStats=()=>JSON.parse(localStorage.getItem("tsmc_stats")||'{"answered":0,"correct":0,"best":0}');
+function getMistakes(){
+  try{
+    const raw=localStorage.getItem("tsmc_mistakes");
+    const data=raw?JSON.parse(raw):{};
+    if(!data || Array.isArray(data) || typeof data!=="object") return {};
+    return data;
+  }catch(e){ return {}; }
+}
+function getStats(){
+  try{
+    const raw=localStorage.getItem("tsmc_stats");
+    const s=raw?JSON.parse(raw):{};
+    return {
+      answered:Math.max(0,Number(s&&s.answered)||0),
+      correct:Math.max(0,Number(s&&s.correct)||0)
+    };
+  }catch(e){ return {answered:0,correct:0}; }
+}
 function saveMistake(id, yourAnswer){
   const m=getMistakes(), w=WORDS.find(x=>x.id===id);
   if(!m[id]) m[id]={id,word:w.word,meaning:w.meaning,wrong:0,history:[]};
@@ -192,15 +208,15 @@ function renderMistakes(){
   box.innerHTML=ms.length?`<div class="actions"><button class="primary" onclick="startMistakeQuiz()">錯題再測</button></div>`+ms.map(m=>`<div class="err-row"><div><b class="word">${esc(m.word)}</b> <span class="badge">錯 ${m.wrong} 次</span><br><span class="muted">${esc(m.meaning)}</span></div><button class="secondary" onclick="quizOne(${m.id})">再測</button></div>`).join(""):`<div class="card" style="background:#f8fafc;text-align:center">目前沒有錯題，繼續保持！</div>`;
 }
 function clearAllRecords(){
-  if(confirm("確定要清除所有測驗紀錄嗎？\n\n將清除：錯題本、作答題數、累積答對、目前正確率，以及舊版紀錄。\n288 個單字題庫不會被刪除。")){
-    localStorage.clear();
+  if(confirm("確定要清除所有測驗紀錄嗎？\n\n將清除：錯題本、作答題數、累積答對、目前正確率，以及舊版測驗紀錄。\n288 個單字題庫不會被刪除。")){
+    ["tsmc_mistakes","tsmc_stats","tsmc_v1_stats","tsmc_v2_stats","tsmc-vocab-stats","tsmc_vocab_stats","tsmc_history","quizHistory"].forEach(k=>localStorage.removeItem(k));
     sessionStorage.clear();
     localStorage.setItem("tsmc_stats",JSON.stringify({answered:0,correct:0}));
     localStorage.setItem("tsmc_mistakes","{}");
     updateDashboard();
     renderMistakes();
     showView("home");
-    alert("所有測驗紀錄已清除！\n作答題數：0\n累積答對：0\n目前正確率：0%");
+    alert("所有測驗紀錄已清除！\n\n作答題數：0\n累積答對：0\n目前正確率：0%");
   }
 }
 updateDashboard();
@@ -222,4 +238,4 @@ if("serviceWorker" in navigator){
 }
 
 </script>
-<div style="text-align:center;padding:8px 0 18px;font-size:12px;color:#687386">PWA v4</div></body></html>
+<div style="text-align:center;padding:8px 0 18px;font-size:12px;color:#687386">PWA v10</div></body></html>
