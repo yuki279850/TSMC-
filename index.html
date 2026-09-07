@@ -122,9 +122,28 @@ function updateStats(correct){
   const s=getStats();s.answered++;if(correct)s.correct++;s.best=Math.max(s.best,s.answered?Math.round(s.correct/s.answered*100):0);
   localStorage.setItem("tsmc_stats",JSON.stringify(s));updateDashboard();
 }
+function getStats(){
+  try{
+    const s=JSON.parse(localStorage.getItem("tsmc_stats")||"{}");
+    return {
+      answered:Number.isFinite(Number(s.answered))?Number(s.answered):0,
+      correct:Number.isFinite(Number(s.correct))?Number(s.correct):0,
+      best:Number.isFinite(Number(s.best))?Number(s.best):0
+    };
+  }catch(e){
+    return {answered:0,correct:0,best:0};
+  }
+}
 function updateDashboard(){
-  const m=getMistakes(),s=getStats();document.getElementById("homeMistakes").textContent=Object.keys(m).length;
-  document.getElementById("totalAnswered").textContent=s.answered;document.getElementById("totalCorrect").textContent=s.correct;document.getElementById("bestRate").textContent=s.best+"%";
+  const s=getStats();
+  const answered=document.querySelector("#statAnswered");
+  const correct=document.querySelector("#statCorrect");
+  const best=document.querySelector("#statBest");
+  const mistakes=document.querySelector("#mistakeCount");
+  if(answered) answered.textContent=s.answered;
+  if(correct) correct.textContent=s.correct;
+  if(best) best.textContent=(s.best||0)+"%";
+  if(mistakes) mistakes.textContent=getMistakes().length;
 }
 function showView(id){
   document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");
@@ -176,16 +195,14 @@ function renderMistakes(){
   box.innerHTML=ms.length?`<div class="actions"><button class="primary" onclick="startMistakeQuiz()">錯題再測</button></div>`+ms.map(m=>`<div class="err-row"><div><b class="word">${esc(m.word)}</b> <span class="badge">錯 ${m.wrong} 次</span><br><span class="muted">${esc(m.meaning)}</span></div><button class="secondary" onclick="quizOne(${m.id})">再測</button></div>`).join(""):`<div class="card" style="background:#f8fafc;text-align:center">目前沒有錯題，繼續保持！</div>`;
 }
 function clearAllRecords(){
-  if(confirm("確定要清除所有測驗紀錄嗎？\n\n將清除：錯題本、作答題數、累積答對、最佳正確率，以及本網站保存在瀏覽器中的舊版紀錄。\n288 個單字題庫不會被刪除。")){
-    // 本網站只用瀏覽器儲存測驗資料；直接清空可避免不同版本使用不同 key 而殘留統計。
-    localStorage.clear();
+  if(confirm("確定要清除所有測驗紀錄嗎？\n\n錯題本、作答題數、累積答對、最佳正確率都會歸零。\n288 個單字題庫不會被刪除。")){
+    ["tsmc_mistakes","tsmc_stats","tsmc_v1_stats","tsmc_v2_stats","tsmc-vocab-stats","tsmc_vocab_stats","tsmc_history","quizHistory"].forEach(k=>localStorage.removeItem(k));
     sessionStorage.clear();
-    // 重新建立乾淨的統計初始值
+    localStorage.setItem("tsmc_mistakes","[]");
     localStorage.setItem("tsmc_stats",JSON.stringify({answered:0,correct:0,best:0}));
     renderMistakes();
     updateDashboard();
-    showView("home");
-    alert("所有測驗紀錄已清除！\n作答題數、累積答對、最佳正確率都已歸零。");
+    alert("已清除全部測驗紀錄！\n\n作答題數：0\n累積答對：0\n最佳正確率：0%");
   }
 }
 updateDashboard();

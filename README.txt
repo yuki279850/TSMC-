@@ -25,3 +25,6 @@ v4：強化「清除全部紀錄」，會清除錯題本與所有測驗統計，
 
 
 v5：修正紀錄清除問題。清除時會清空本網站的 localStorage/sessionStorage 舊版紀錄，再重建 0 值統計，避免不同版本 key 導致數字殘留。
+
+
+v6：重整統計資料模型；清除時清除已知舊版統計 key，並建立 canonical tsmc_stats={answered:0,correct:0,best:0}，避免最佳正確率殘留。
