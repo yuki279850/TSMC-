@@ -1,11 +1,21 @@
-# TSMC Vocabulary PWA
+TSMC Vocabulary PWA v2
 
-這個資料夾是一個可安裝到手機主畫面的 PWA。
+本版本更新：
+1. 手機版版面重新調整：縮短頂端導覽、四個功能按鈕更適合小螢幕、選項與按鈕更容易觸控。
+2. 新增「完整題庫 288 題」模式：會把 288 個單字全部出完，並在每題顯示進度。
+3. 保留隨機 10 題、單字表、錯題本、錯題再測、分數與瀏覽器 localStorage。
+4. 加入 PWA manifest、Service Worker、PNG App Icon。
+5. GitHub Pages 部署後可用手機加入主畫面。
 
-## 使用方式
-1. 將整個資料夾部署到 HTTPS 網站（例如 GitHub Pages、Netlify、Vercel 或自己的 HTTPS 網站）。
-2. 用手機瀏覽器開啟 `index.html`。
-3. Android Chrome 通常會顯示「安裝到主畫面」提示；iPhone/iPad 可在 Safari 使用「加入主畫面」。
-4. 安裝後可像 App 一樣開啟；Service Worker 會快取網站，之後可離線使用已快取內容。
+GitHub Pages：
+- Repository 根目錄放 index.html、manifest.webmanifest、sw.js、icons。
+- Pages Source：Deploy from a branch
+- Branch：main
+- Folder：/(root)
+- 必須使用 HTTPS。
 
-注意：直接用 `file://` 開啟 HTML 不會完整啟用 PWA 安裝功能；需要 HTTPS（localhost 開發環境除外）。
+iPhone：
+Safari 開啟網站 → 分享 → 加入主畫面。
+
+Android：
+Chrome 開啟網站 → 安裝應用程式／加入主畫面。
