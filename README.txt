@@ -28,3 +28,6 @@ v5：修正紀錄清除問題。清除時會清空本網站的 localStorage/sess
 
 
 v6：重整統計資料模型；清除時清除已知舊版統計 key，並建立 canonical tsmc_stats={answered:0,correct:0,best:0}，避免最佳正確率殘留。
+
+
+v7：修正正確率統計。作答題數與累積答對逐題累計；「最佳單次正確率」只在完整一場測驗結束時，以該場 score/題數更新。
