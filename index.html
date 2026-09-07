@@ -93,7 +93,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 16px}
 <div class="install-banner" id="installBanner"><span>📱 可以把這個網站加入手機主畫面</span><button class="primary" id="installBtn">安裝</button></div></div>
 <div class="card"><div class="muted">目前錯題</div><div class="score" id="homeMistakes">0</div><div class="muted">個單字</div></div></div>
 <div class="grid"><div class="card stat"><span class="muted">單字總數</span><b>288</b></div><div class="card stat"><span class="muted">作答題數</span><b id="totalAnswered">0</b></div><div class="card stat"><span class="muted">累積答對</span><b id="totalCorrect">0</b></div><div class="card stat"><span class="muted">最佳正確率</span><b id="bestRate">0%</b></div></div>
-<div class="card" style="margin-top:18px"><h3>紀錄管理</h3><p class="muted">錯題本、作答題數、累積答對與最佳正確率都會儲存在這台裝置的瀏覽器。可在「錯題本」一次清除全部紀錄。</p><div class="actions"><button class="danger" onclick="clearAllRecords()">清除全部紀錄</button></div></div><div class="card" style="margin-top:18px"><h3>功能</h3><p class="muted">四選一、即時解答、分數、完整 288 題題庫練習、錯題紀錄、歷史錯題再測、單字搜尋，以及直接開啟原始 TSMC PDF。</p>
+<div class="card" style="margin-top:18px"><h3>紀錄管理</h3><p class="muted">錯題本、作答題數、累積答對與最佳正確率都會儲存在這台裝置的瀏覽器。可在「錯題本」一次清除全部紀錄。</p><div class="actions"><button class="danger" onclick="clearAllRecords()">清除全部測驗紀錄</button></div></div><div class="card" style="margin-top:18px"><h3>功能</h3><p class="muted">四選一、即時解答、分數、完整 288 題題庫練習、錯題紀錄、歷史錯題再測、單字搜尋，以及直接開啟原始 TSMC PDF。</p>
 <div class="actions"><a class="btn secondary" href="https://www.tsmc.com/sites/dcom/2023-11/tsmc_vocabulary.pdf" target="_blank" rel="noopener">開啟原始 TSMC 單字表 ↗</a></div></div>
 </section>
 
@@ -101,7 +101,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 16px}
 
 <section id="quiz" class="view"><div class="quiz" id="quizArea"></div></section>
 
-<section id="mistakes" class="view"><div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h2 style="margin-bottom:5px">錯題本</h2><p class="muted">只要曾經答錯，就會保留在這裡；資料存在你的瀏覽器。</p></div><button class="danger" onclick="clearAllRecords()">清除全部紀錄</button></div><div id="mistakeList" style="margin-top:14px"></div></div></section>
+<section id="mistakes" class="view"><div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h2 style="margin-bottom:5px">錯題本</h2><p class="muted">只要曾經答錯，就會保留在這裡；資料存在你的瀏覽器。</p></div><button class="danger" onclick="clearAllRecords()">清除全部測驗紀錄</button></div><div id="mistakeList" style="margin-top:14px"></div></div></section>
 </main>
 <footer>資料來源：使用者提供的 TSMC 常用英文單字參考 PDF（288 筆）。<br>此網站為學習工具，非 TSMC 官方網站。</footer>
 
@@ -176,10 +176,11 @@ function renderMistakes(){
   box.innerHTML=ms.length?`<div class="actions"><button class="primary" onclick="startMistakeQuiz()">錯題再測</button></div>`+ms.map(m=>`<div class="err-row"><div><b class="word">${esc(m.word)}</b> <span class="badge">錯 ${m.wrong} 次</span><br><span class="muted">${esc(m.meaning)}</span></div><button class="secondary" onclick="quizOne(${m.id})">再測</button></div>`).join(""):`<div class="card" style="background:#f8fafc;text-align:center">目前沒有錯題，繼續保持！</div>`;
 }
 function clearAllRecords(){
-  if(confirm("確定要清除所有測驗紀錄嗎？\n\n將清除：錯題本、作答題數、累積答對、最佳正確率。\n288 個單字題庫不會被刪除。")){
-    // 新舊版本都一起清除，避免舊版留下的統計數字繼續顯示
-    ["tsmc_mistakes","tsmc_stats","tsmc_v1_stats","tsmc_v2_stats","tsmc-vocab-stats"].forEach(k=>localStorage.removeItem(k));
-    // 立即以全新 0 值刷新首頁統計
+  if(confirm("確定要清除所有測驗紀錄嗎？\n\n將清除：錯題本、作答題數、累積答對、最佳正確率，以及本網站保存在瀏覽器中的舊版紀錄。\n288 個單字題庫不會被刪除。")){
+    // 本網站只用瀏覽器儲存測驗資料；直接清空可避免不同版本使用不同 key 而殘留統計。
+    localStorage.clear();
+    sessionStorage.clear();
+    // 重新建立乾淨的統計初始值
     localStorage.setItem("tsmc_stats",JSON.stringify({answered:0,correct:0,best:0}));
     renderMistakes();
     updateDashboard();
