@@ -92,8 +92,8 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 16px}
 </div>
 <div class="install-banner" id="installBanner"><span>📱 可以把這個網站加入手機主畫面</span><button class="primary" id="installBtn">安裝</button></div></div>
 <div class="card"><div class="muted">目前錯題</div><div class="score" id="homeMistakes">0</div><div class="muted">個單字</div></div></div>
-<div class="grid"><div class="card stat"><span class="muted">單字總數</span><b>288</b></div><div class="card stat"><span class="muted">作答題數</span><b id="totalAnswered">0</b></div><div class="card stat"><span class="muted">累積答對</span><b id="totalCorrect">0</b></div><div class="card stat"><span class="muted">最佳單次正確率</span><b id="bestRate">0%</b></div></div>
-<div class="card" style="margin-top:18px"><h3>紀錄管理</h3><p class="muted">錯題本、作答題數、累積答對與最佳單次正確率都會儲存在這台裝置的瀏覽器。可在「錯題本」一次清除全部紀錄。</p><div class="actions"><button class="danger" onclick="clearAllRecords()">清除全部測驗紀錄</button></div></div><div class="card" style="margin-top:18px"><h3>功能</h3><p class="muted">四選一、即時解答、分數、完整 288 題題庫練習、錯題紀錄、歷史錯題再測、單字搜尋，以及直接開啟原始 TSMC PDF。</p>
+<div class="grid"><div class="card stat"><span class="muted">單字總數</span><b>288</b></div><div class="card stat"><span class="muted">作答題數</span><b id="totalAnswered">0</b></div><div class="card stat"><span class="muted">累積答對</span><b id="totalCorrect">0</b></div><div class="card stat"><span class="muted">目前正確率</span><b id="bestRate">0%</b></div></div>
+<div class="card" style="margin-top:18px"><h3>紀錄管理</h3><p class="muted">錯題本、作答題數、累積答對與目前正確率都會儲存在這台裝置的瀏覽器。可在「錯題本」一次清除全部紀錄。</p><div class="actions"><button class="danger" onclick="clearAllRecords()">清除全部測驗紀錄</button></div></div><div class="card" style="margin-top:18px"><h3>功能</h3><p class="muted">四選一、即時解答、分數、完整 288 題題庫練習、錯題紀錄、歷史錯題再測、單字搜尋，以及直接開啟原始 TSMC PDF。</p>
 <div class="actions"><a class="btn secondary" href="https://www.tsmc.com/sites/dcom/2023-11/tsmc_vocabulary.pdf" target="_blank" rel="noopener">開啟原始 TSMC 單字表 ↗</a></div></div>
 </section>
 
@@ -140,11 +140,11 @@ function updateDashboard(){
   const s=getStats();
   const answered=document.querySelector("#statAnswered");
   const correct=document.querySelector("#statCorrect");
-  const best=document.querySelector("#statBest");
+  const accuracy=document.querySelector("#statBest");
   const mistakes=document.querySelector("#mistakeCount");
   if(answered) answered.textContent=s.answered;
   if(correct) correct.textContent=s.correct;
-  if(best) best.textContent=(s.best||0)+"%";
+  if(accuracy) accuracy.textContent=(s.answered ? Math.round(s.correct/s.answered*100) : 0)+"%";
   if(mistakes) mistakes.textContent=getMistakes().length;
 }
 function showView(id){
@@ -187,14 +187,15 @@ function answer(w,answer){
   const btn=document.createElement("button");btn.className="primary";btn.style.marginTop="12px";btn.textContent=state.quiz.index===state.quiz.list.length-1?"查看結果":"下一題";btn.onclick=()=>{state.quiz.index++;renderQuestion()};fb.appendChild(document.createElement("br"));fb.appendChild(btn);
 }
 function renderResult(){
-  const q=state.quiz,rate=Math.round(q.score/q.list.length*100);
+  const q=state.quiz, rate=Math.round(q.score/q.list.length*100);
   const s=getStats();
   if(rate>s.best){
     s.best=rate;
     localStorage.setItem("tsmc_stats",JSON.stringify(s));
   }
   updateDashboard();
-  document.getElementById("quizArea").innerHTML=`<div class="card result"><div class="muted">測驗完成</div><div class="score">${q.score} / ${q.list.length}</div><h2>正確率 ${rate}%</h2><p>答對 ${q.score} 題，答錯 ${q.wrong.length} 題。</p>
+  const cumulative=s.answered ? Math.round(s.correct/s.answered*100) : 0;
+  document.getElementById("quizArea").innerHTML=`<div class="card result"><div class="muted">測驗完成</div><div class="score">${q.score} / ${q.list.length}</div><h2>本次正確率 ${rate}%</h2><p>答對 ${q.score} 題，答錯 ${q.wrong.length} 題。</p><p class="muted">累積作答 ${s.answered} 題・累積答對 ${s.correct} 題・目前正確率 ${cumulative}%</p>
   <div class="actions" style="justify-content:center"><button class="primary" onclick="startQuiz()">再測 10 題</button><button class="primary" onclick="startQuiz(WORDS.length, WORDS)">再做 288 題</button><button class="secondary" onclick="showView('mistakes')">查看錯題本</button><button class="secondary" onclick="showView('words')">查單字表</button></div>
   ${q.wrong.length?`<div style="text-align:left;margin-top:25px"><h3>本次答錯題目與答案</h3>${q.wrong.map(x=>`<div class="err-row"><div><b>${esc(x.word)}</b><br><span class="muted">你的答案：${esc(x.your)}</span><br><span>正確答案：<b>${esc(x.meaning)}</b></span></div></div>`).join("")}</div>`:"<div class="feedback ok">🎉 本次沒有錯題！</div>"}</div>`;
 }
@@ -203,14 +204,14 @@ function renderMistakes(){
   box.innerHTML=ms.length?`<div class="actions"><button class="primary" onclick="startMistakeQuiz()">錯題再測</button></div>`+ms.map(m=>`<div class="err-row"><div><b class="word">${esc(m.word)}</b> <span class="badge">錯 ${m.wrong} 次</span><br><span class="muted">${esc(m.meaning)}</span></div><button class="secondary" onclick="quizOne(${m.id})">再測</button></div>`).join(""):`<div class="card" style="background:#f8fafc;text-align:center">目前沒有錯題，繼續保持！</div>`;
 }
 function clearAllRecords(){
-  if(confirm("確定要清除所有測驗紀錄嗎？\n\n錯題本、作答題數、累積答對、最佳單次正確率都會歸零。\n288 個單字題庫不會被刪除。")){
+  if(confirm("確定要清除所有測驗紀錄嗎？\n\n錯題本、作答題數、累積答對、目前正確率都會歸零。\n288 個單字題庫不會被刪除。")){
     ["tsmc_mistakes","tsmc_stats","tsmc_v1_stats","tsmc_v2_stats","tsmc-vocab-stats","tsmc_vocab_stats","tsmc_history","quizHistory"].forEach(k=>localStorage.removeItem(k));
     sessionStorage.clear();
     localStorage.setItem("tsmc_mistakes","[]");
     localStorage.setItem("tsmc_stats",JSON.stringify({answered:0,correct:0,best:0}));
     renderMistakes();
     updateDashboard();
-    alert("已清除全部測驗紀錄！\n\n作答題數：0\n累積答對：0\n最佳單次正確率：0%");
+    alert("已清除全部測驗紀錄！\n\n作答題數：0\n累積答對：0\n目前正確率：0%");
   }
 }
 updateDashboard();
