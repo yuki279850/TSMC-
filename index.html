@@ -177,11 +177,14 @@ function renderMistakes(){
 }
 function clearAllRecords(){
   if(confirm("確定要清除所有測驗紀錄嗎？\n\n將清除：錯題本、作答題數、累積答對、最佳正確率。\n288 個單字題庫不會被刪除。")){
-    localStorage.removeItem("tsmc_mistakes");
-    localStorage.removeItem("tsmc_stats");
+    // 新舊版本都一起清除，避免舊版留下的統計數字繼續顯示
+    ["tsmc_mistakes","tsmc_stats","tsmc_v1_stats","tsmc_v2_stats","tsmc-vocab-stats"].forEach(k=>localStorage.removeItem(k));
+    // 立即以全新 0 值刷新首頁統計
+    localStorage.setItem("tsmc_stats",JSON.stringify({answered:0,correct:0,best:0}));
     renderMistakes();
     updateDashboard();
-    alert("所有測驗紀錄已清除。");
+    showView("home");
+    alert("所有測驗紀錄已清除！\n作答題數、累積答對、最佳正確率都已歸零。");
   }
 }
 updateDashboard();
@@ -203,4 +206,4 @@ if("serviceWorker" in navigator){
 }
 
 </script>
-</body></html>
+<div style="text-align:center;padding:8px 0 18px;font-size:12px;color:#687386">PWA v4</div></body></html>

@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsmc-vocab-v3";
+const CACHE_NAME = "tsmc-vocab-v4";
 const ASSETS = [
   "./",
   "./index.html",
