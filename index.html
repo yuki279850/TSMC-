@@ -160,7 +160,7 @@ document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showView(b.data
 function renderWords(){
   const q=(document.getElementById("search").value||"").toLowerCase(),pos=document.getElementById("posFilter").value;
   const rows=WORDS.filter(w=>(!q||(w.word+" "+w.meaning+" "+w.pos).toLowerCase().includes(q))&&(!pos||w.pos.includes(pos)));
-  document.getElementById("wordRows").innerHTML=rows.map(w=>`<tr><td>${w.id}</td><td class="word">${esc(w.word)}</td><td>${esc(w.pos)}</td><td>${esc(w.meaning)}</td><td><button class="secondary" onclick="quizOne(${w.id})">測這題</button></td></tr>`).join("");
+  document.getElementById("wordRows").innerHTML=rows.map(w=>'<tr><td>'+w.id+'</td><td class="word">'+esc(w.word)+'</td><td>'+esc(w.pos)+'</td><td>'+esc(w.meaning)+'</td><td><button class="secondary" onclick="quizOne('+w.id+')">測這題</button></td></tr>').join("");
 }
 document.getElementById("search").addEventListener("input",renderWords);document.getElementById("posFilter").addEventListener("change",renderWords);
 
@@ -176,16 +176,17 @@ function renderQuestion(){
   if(!w){renderResult();return}
   const distract=shuffle(WORDS.filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.meaning);
   const choices=shuffle([w.meaning,...distract]);
-  const modeLabel=q.list.length===WORDS.length?"完整題庫 288 題":(q.list.length===10?"隨機 10 題":`本次 ${q.list.length} 題`);document.getElementById("quizArea").innerHTML=`<div class="card"><div class="muted">${modeLabel} ・ 第 ${q.index+1} / ${q.list.length} 題</div><div class="progress"><i style="width:${(q.index+1)/q.list.length*100}%"></i></div>
-  <div class="question"><small>${esc(w.pos)} ・ 中文意思</small>${esc(w.word)}</div><div class="choices">${choices.map((c,i)=>`<button class="choice" data-i="${i}" data-answer="${esc(c)}">${esc(c)}</button>`).join("")}</div><div id="feedback"></div></div>`;
+  const modeLabel=q.list.length===WORDS.length?"完整題庫 288 題":(q.list.length===10?"隨機 10 題":"本次 "+q.list.length+" 題");
+  const choiceHtml=choices.map((c,i)=>'<button class="choice" data-i="'+i+'" data-answer="'+esc(c)+'">'+esc(c)+'</button>').join("");
+  document.getElementById("quizArea").innerHTML='<div class="card"><div class="muted">'+modeLabel+' ・ 第 '+(q.index+1)+' / '+q.list.length+' 題</div><div class="progress"><i style="width:'+((q.index+1)/q.list.length*100)+'%"></i></div><div class="question"><small>'+esc(w.pos)+' ・ 中文意思</small>'+esc(w.word)+'</div><div class="choices">'+choiceHtml+'</div><div id="feedback"></div></div>';
   document.querySelectorAll(".choice").forEach(b=>b.onclick=()=>answer(w,b.dataset.answer));
 }
 function answer(w,answer){
   const correct=answer===w.meaning;updateStats(correct);
   document.querySelectorAll(".choice").forEach(b=>{b.disabled=true;if(b.dataset.answer===w.meaning)b.classList.add("correct");if(b.dataset.answer===answer&&!correct)b.classList.add("wrong")});
   const fb=document.getElementById("feedback");
-  if(correct){state.quiz.score++;fb.innerHTML=`<div class="feedback ok">✓ 答對了！</div>`}
-  else{state.quiz.wrong.push({id:w.id,word:w.word,meaning:w.meaning,your:answer});saveMistake(w.id,answer);fb.innerHTML=`<div class="feedback bad">✕ 答錯了。<b>正確答案：${esc(w.meaning)}</b><br><span class="muted">單字：${esc(w.word)}</span></div>`}
+  if(correct){state.quiz.score++;fb.innerHTML='<div class="feedback ok">✓ 答對了！</div>'}
+  else{state.quiz.wrong.push({id:w.id,word:w.word,meaning:w.meaning,your:answer});saveMistake(w.id,answer);fb.innerHTML='<div class="feedback bad">✕ 答錯了。<b>正確答案：'+esc(w.meaning)+'</b><br><span class="muted">單字：'+esc(w.word)+'</span></div>'}
   const btn=document.createElement("button");btn.className="primary";btn.style.marginTop="12px";btn.textContent=state.quiz.index===state.quiz.list.length-1?"查看結果":"下一題";btn.onclick=()=>{state.quiz.index++;renderQuestion()};fb.appendChild(document.createElement("br"));fb.appendChild(btn);
 }
 function renderResult(){
@@ -205,7 +206,7 @@ function renderResult(){
 }
 function renderMistakes(){
   const ms=Object.values(getMistakes()).sort((a,b)=>b.wrong-a.wrong),box=document.getElementById("mistakeList");
-  box.innerHTML=ms.length?`<div class="actions"><button class="primary" onclick="startMistakeQuiz()">錯題再測</button></div>`+ms.map(m=>`<div class="err-row"><div><b class="word">${esc(m.word)}</b> <span class="badge">錯 ${m.wrong} 次</span><br><span class="muted">${esc(m.meaning)}</span></div><button class="secondary" onclick="quizOne(${m.id})">再測</button></div>`).join(""):`<div class="card" style="background:#f8fafc;text-align:center">目前沒有錯題，繼續保持！</div>`;
+  box.innerHTML=ms.length?'<div class="actions"><button class="primary" onclick="startMistakeQuiz()">錯題再測</button></div>'+ms.map(m=>'<div class="err-row"><div><b class="word">'+esc(m.word)+'</b> <span class="badge">錯 '+m.wrong+' 次</span><br><span class="muted">'+esc(m.meaning)+'</span></div><button class="secondary" onclick="quizOne('+m.id+')">再測</button></div>').join(''):'<div class="card" style="background:#f8fafc;text-align:center">目前沒有錯題，繼續保持！</div>';
 }
 function clearAllRecords(){
   if(confirm("確定要清除所有測驗紀錄嗎？\n\n將清除：錯題本、作答題數、累積答對、目前正確率，以及舊版測驗紀錄。\n288 個單字題庫不會被刪除。")){
@@ -238,4 +239,4 @@ if("serviceWorker" in navigator){
 }
 
 </script>
-<div style="text-align:center;padding:8px 0 18px;font-size:12px;color:#687386">PWA v10</div></body></html>
+<div style="text-align:center;padding:8px 0 18px;font-size:12px;color:#687386">PWA v11</div></body></html>
